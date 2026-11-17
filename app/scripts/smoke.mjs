@@ -343,6 +343,10 @@ try {
     await page.goto(URL_APP + '#/guia/d0000000-0000-4000-8000-000000000001/imprimir');
     await page.getByText('COPIA PARA EL CLIENTE').waitFor();
     await shot(page, 'imprimir');
+    check('Pegatinas: una por bulto adicional, con destinatario y pueblo', (await page.getByRole('button', { name: /Imprimir pegatinas \(1\)/ }).count()) === 1 && (await page.locator('.pegatina').filter({ hasText: 'Luis Gómez' }).filter({ hasText: 'Seaside' }).count()) === 1);
+    await page.evaluate(() => { document.querySelector('.hoja-wrap').dataset.modo = 'pegatinas'; });
+    await shot(page, 'pegatinas');
+    await page.evaluate(() => { document.querySelector('.hoja-wrap').dataset.modo = 'guia'; });
     check('Impresión: original y copia cliente con encabezado de config_guia', (await page.getByText('ORIGINAL · PEGAR EN EL PAQUETE', { exact: true }).count()) === 1 && (await page.getByText('ENVIOS CALIFORNIA').count()) === 2 && (await page.getByText('NOTA: La empresa no se hace responsable', { exact: false }).count()) === 2);
     await page.emulateMedia({ media: 'print' });
     const vis = await page.evaluate(() => ({

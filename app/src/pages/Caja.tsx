@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { q, traerTodo } from '../lib/api';
@@ -231,18 +231,36 @@ export function GuiaImprimir() {
   const cfg = useConfigGuia();
   const { perfil } = useAuth();
   const dif = (useLocation().state as { diferencia?: string | null } | null)?.diferencia ?? null;
+  const estiloPagina = useRef<HTMLStyleElement | null>(null);
+  const hojaRef = useRef<HTMLDivElement>(null);
+  const PAG_GUIA = '@page { size: 101.6mm 152.4mm; margin: 0; }';
+  const PAG_PEGATINAS = '@page { size: letter; margin: 10mm; }';
 
   useEffect(() => {
     const st = document.createElement('style');
-    st.textContent = '@page { size: 101.6mm 152.4mm; margin: 0; }';
+    st.textContent = PAG_GUIA;
     document.head.appendChild(st);
+    estiloPagina.current = st;
     return () => { st.remove(); };
   }, []);
+
+  /** Imprime la guía (4 × 6) o las pegatinas (hoja carta) cambiando el tamaño de página solo durante la impresión. */
+  function imprimir(modo: 'guia' | 'pegatinas') {
+    const st = estiloPagina.current;
+    const hoja = hojaRef.current;
+    if (st) st.textContent = modo === 'guia' ? PAG_GUIA : PAG_PEGATINAS;
+    if (hoja) hoja.dataset.modo = modo;
+    window.print();
+    if (st) st.textContent = PAG_GUIA;
+  }
 
   if (g.cargando || cfg.cargando) return <Cargando />;
   if (g.error) return <ErrorCaja error={g.error} onReintentar={g.recargar} />;
   if (!g.data) return <Vacio>No se encontró la guía.</Vacio>;
   const volver = perfil?.rol === 'administrador' ? `/guia/${g.data.id}` : '/mis-guias';
+  // La guía va en el primer bulto; hay una pegatina por cada bulto restante.
+  const pegatinas = Math.max(0, (g.data.bultos ?? 1) - 1);
+  const pueblo = g.data.ciudad ?? '';
   return (
     <div className="col">
       <div className="no-print col">
@@ -256,15 +274,21 @@ export function GuiaImprimir() {
         {dif && <Aviso tipo="warn">{dif}</Aviso>}
         {cfg.error && <Aviso tipo="warn">No se pudo cargar el encabezado de la guía ({cfg.error}). Se imprimirá con el encabezado básico.</Aviso>}
         <div className="acciones">
-          <button className="btn primary" onClick={() => window.print()}><Icon n="imprimir" /> Imprimir (original y copia)</button>
+          <button className="btn primary" onClick={() => imprimir('guia')}><Icon n="imprimir" /> Imprimir (original y copia)</button>
+          {pegatinas > 0 && <button className="btn" onClick={() => imprimir('pegatinas')}><Icon n="etiqueta" /> Imprimir pegatinas ({pegatinas})</button>}
           <Link className="btn" to={volver}>Listo</Link>
           {perfil?.rol === 'sucursal' && <Link className="btn accent" to="/guia/nueva">Nueva guía</Link>}
         </div>
         <p className="peq muted">Se imprimen dos hojas de 4 × 6 pulgadas (101.6 × 152.4 mm): original y copia del cliente.</p>
       </div>
-      <div className="hoja-wrap">
+      <div className="hoja-wrap" ref={hojaRef} data-modo="guia">
         <GuiaHoja guia={g.data} config={cfg.data} etiqueta="ORIGINAL" />
         <GuiaHoja guia={g.data} config={cfg.data} etiqueta="COPIA CLIENTE" />
+        <div className="pegatinas">
+          {Array.from({ length: pegatinas }, (_, i) => (
+            <div className="pegatina" key={i}><span><b>{g.data!.destinatario}</b> - {pueblo}</span></div>
+          ))}
+        </div>
       </div>
     </div>
   );

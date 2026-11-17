@@ -255,3 +255,12 @@ tfoot td { font-weight: 800; background: var(--panel); }
   .guia { box-shadow: none; page-break-after: always; break-after: page; }
   .guia:last-child { page-break-after: auto; break-after: auto; }
 }
+
+/* Pegatinas para los bultos adicionales: hoja carta con etiquetas de 62 × 29 mm */
+.hoja-wrap .pegatinas { display: none; }
+.hoja-wrap[data-modo="pegatinas"] .guia { display: none; }
+.hoja-wrap[data-modo="pegatinas"] { align-items: stretch; }
+.hoja-wrap[data-modo="pegatinas"] .pegatinas { display: grid; grid-template-columns: repeat(3, 62mm); gap: 2mm 4mm; justify-content: start; width: 100%; overflow-x: auto; padding-bottom: 2mm; }
+@media print { .hoja-wrap[data-modo="pegatinas"] .pegatinas { overflow: visible; } }
+.pegatina { width: 62mm; height: 29mm; box-sizing: border-box; padding: 2mm; display: flex; align-items: center; justify-content: center; text-align: center; color: #000; font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; font-weight: 700; font-size: 4mm; line-height: 1.15; overflow: hidden; }
+.pegatina b { font-weight: 900; font-size: 4.4mm; }
