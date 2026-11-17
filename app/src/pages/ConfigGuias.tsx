@@ -3,14 +3,18 @@ import { supabase } from '../lib/supabase';
 import { q } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { parseNumero } from '../lib/money';
-import { Aviso, Campo, Cargando, ErrorCaja, Pagina } from '../components/ui';
+import { Aviso, Campo, Cargando, ErrorCaja, Pagina, Segmentos } from '../components/ui';
 import { GuiaHoja } from '../components/GuiaHoja';
 import { useConfigGuia } from './Caja';
 import type { ConfigGuia, Guia } from '../lib/types';
 
 type Encabezado = NonNullable<ConfigGuia['encabezado']>;
 const LOGO_MAX_BYTES = 300 * 1024;
-const TAMANO_4X6 = { ancho: '101.6', alto: '152.4' };
+const FORMATOS = {
+  '4x6': { ancho: '101.6', alto: '152.4', nombre: '4 × 6 pulgadas' },
+  '4x8': { ancho: '101.6', alto: '203.2', nombre: '4 × 8 pulgadas' },
+} as const;
+type Formato = keyof typeof FORMATOS | 'otro';
 
 /** Edición de la información de la empresa, la nota y el tamaño de la guía. Solo administrador de nivel 1 (la base lo exige también). */
 export function ConfigGuiasAdmin() {
@@ -35,6 +39,7 @@ function FormularioConfig({ config }: { config: ConfigGuia }) {
   const [ancho, setAncho] = useState(String(config.ancho_mm ?? 101.6));
   const [alto, setAlto] = useState(String(config.alto_mm ?? 152.4));
   const [vista, setVista] = useState(false);
+  const formatoActual: Formato = (Object.keys(FORMATOS) as (keyof typeof FORMATOS)[]).find((k) => FORMATOS[k].ancho === ancho.trim() && FORMATOS[k].alto === alto.trim()) ?? 'otro';
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
@@ -103,10 +108,12 @@ function FormularioConfig({ config }: { config: ConfigGuia }) {
           <Campo etiqueta="Ancho (mm)"><input type="text" inputMode="decimal" value={ancho} onChange={(x) => setAncho(x.target.value)} /></Campo>
           <Campo etiqueta="Alto (mm)"><input type="text" inputMode="decimal" value={alto} onChange={(x) => setAlto(x.target.value)} /></Campo>
         </div>
-        <div className="fila" style={{ gap: 8, flexWrap: 'wrap' }}>
-          <button className="btn chico" onClick={() => { setAncho(TAMANO_4X6.ancho); setAlto(TAMANO_4X6.alto); }}>Usar 4 × 6 pulgadas</button>
-        </div>
-        <p className="peq muted">Los textos y las fuentes de la guía están hechos para 101.6 × 152.4 mm. Si cambias el tamaño mucho, revisa la vista previa antes de imprimir.</p>
+        <Segmentos<Formato>
+          valor={formatoActual}
+          opciones={[{ v: '4x6', t: FORMATOS['4x6'].nombre }, { v: '4x8', t: FORMATOS['4x8'].nombre }, { v: 'otro', t: 'Otro tamaño' }]}
+          onCambio={(f) => { if (f !== 'otro') { setAncho(FORMATOS[f].ancho); setAlto(FORMATOS[f].alto); } }}
+        />
+        <p className="peq muted">Elige 4 × 6 o 4 × 8 pulgadas, o escribe otro tamaño en mm. Los textos y las fuentes de la guía están pensados para la medida elegida; revisa la vista previa antes de imprimir.</p>
 
         {vista && (
           <div className="hoja-wrap" style={{ alignItems: 'flex-start' }}>
