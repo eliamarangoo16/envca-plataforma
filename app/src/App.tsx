@@ -11,6 +11,7 @@ import { CierreTurno, GuiaDetalle, GuiaImprimir, ListaGuias, NuevaGuia } from '.
 import { Conteos } from './pages/Conteos';
 import { Localidades, RutaDetalle, Rutas } from './pages/Catalogos';
 import { CierreDiario, Tablero, Tarifas, Usuarios } from './pages/Admin';
+import { ConfigGuiasAdmin } from './pages/ConfigGuias';
 import { Bitacora } from './pages/Bitacora';
 
 interface Def { path: string; roles: Rol[]; el: ReactElement }
@@ -33,6 +34,7 @@ const RUTAS: Def[] = [
   { path: 'cierre-diario', roles: N1, el: <CierreDiario /> },
   { path: 'tarifas', roles: N1, el: <Tarifas /> },
   { path: 'usuarios', roles: N1, el: <Usuarios /> },
+  { path: 'formato-guias', roles: N1, el: <ConfigGuiasAdmin /> },
   { path: 'bitacora', roles: N1, el: <Bitacora /> },
   { path: 'conteos', roles: N1N2, el: <Conteos /> },
   { path: 'localidades', roles: N1N2, el: <Localidades /> },

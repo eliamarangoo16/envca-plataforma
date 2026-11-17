@@ -36,6 +36,7 @@ export const NAV: Record<Rol, NavItem[]> = {
     { a: '/localidades', t: 'Localidades', i: 'mapa' },
     { a: '/rutas', t: 'Rutas', i: 'ruta' },
     { a: '/usuarios', t: 'Usuarios', i: 'usuarios' },
+    { a: '/formato-guias', t: 'Formato de guías', i: 'editar' },
     { a: '/bitacora', t: 'Bitácora', i: 'lista' },
     { a: '/perfil', t: 'Perfil', i: 'usuario' },
   ],

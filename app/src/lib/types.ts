@@ -97,6 +97,8 @@ export interface ConfigGuia {
   id: number;
   encabezado: { name?: string; l1?: string; slogan?: string; phones?: string; rfc?: string; titular?: string; logo?: string } | null;
   nota: string | null;
+  ancho_mm?: number | null;
+  alto_mm?: number | null;
 }
 
 export const METODOS_PAGO = ['Efectivo', 'Transferencia', 'Zelle'] as const;

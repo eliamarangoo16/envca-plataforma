@@ -221,7 +221,7 @@ export function NuevaGuia() {
 
 // ------------------------------------------------------------ Impresión
 export function useConfigGuia() {
-  return useQuery<ConfigGuia>(() => q(supabase.from('config_guia').select('id,encabezado,nota').eq('id', 1).single()), []);
+  return useQuery<ConfigGuia>(() => q(supabase.from('config_guia').select('id,encabezado,nota,ancho_mm,alto_mm').eq('id', 1).single()), []);
 }
 
 export function GuiaImprimir() {
@@ -233,12 +233,12 @@ export function GuiaImprimir() {
   const dif = (useLocation().state as { diferencia?: string | null } | null)?.diferencia ?? null;
   const estiloPagina = useRef<HTMLStyleElement | null>(null);
   const hojaRef = useRef<HTMLDivElement>(null);
-  const PAG_GUIA = '@page { size: 101.6mm 152.4mm; margin: 0; }';
+  const ancho = cfg.data?.ancho_mm ?? 101.6;
+  const alto = cfg.data?.alto_mm ?? 152.4;
   const PAG_PEGATINAS = '@page { size: letter; margin: 10mm; }';
 
   useEffect(() => {
     const st = document.createElement('style');
-    st.textContent = PAG_GUIA;
     document.head.appendChild(st);
     estiloPagina.current = st;
     return () => { st.remove(); };
@@ -248,10 +248,10 @@ export function GuiaImprimir() {
   function imprimir(modo: 'guia' | 'pegatinas') {
     const st = estiloPagina.current;
     const hoja = hojaRef.current;
-    if (st) st.textContent = modo === 'guia' ? PAG_GUIA : PAG_PEGATINAS;
+    if (st) st.textContent = modo === 'guia' ? `@page { size: ${ancho}mm ${alto}mm; margin: 0; }` : PAG_PEGATINAS;
     if (hoja) hoja.dataset.modo = modo;
     window.print();
-    if (st) st.textContent = PAG_GUIA;
+    if (st) st.textContent = `@page { size: ${ancho}mm ${alto}mm; margin: 0; }`;
   }
 
   if (g.cargando || cfg.cargando) return <Cargando />;
@@ -279,7 +279,7 @@ export function GuiaImprimir() {
           <Link className="btn" to={volver}>Listo</Link>
           {perfil?.rol === 'sucursal' && <Link className="btn accent" to="/guia/nueva">Nueva guía</Link>}
         </div>
-        <p className="peq muted">Se imprimen dos hojas de 4 × 6 pulgadas (101.6 × 152.4 mm): original y copia del cliente.</p>
+        <p className="peq muted">Se imprimen dos hojas de {ancho} × {alto} mm: original y copia del cliente.</p>
       </div>
       <div className="hoja-wrap" ref={hojaRef} data-modo="guia">
         <GuiaHoja guia={g.data} config={cfg.data} etiqueta="ORIGINAL" />
