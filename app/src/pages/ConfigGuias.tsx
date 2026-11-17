@@ -13,6 +13,7 @@ const LOGO_MAX_BYTES = 300 * 1024;
 const FORMATOS = {
   '4x6': { ancho: '101.6', alto: '152.4', nombre: '4 × 6 pulgadas' },
   '4x8': { ancho: '101.6', alto: '203.2', nombre: '4 × 8 pulgadas' },
+  '6x8': { ancho: '152.4', alto: '203.2', nombre: '6 × 8 pulgadas' },
 } as const;
 type Formato = keyof typeof FORMATOS | 'otro';
 
@@ -110,10 +111,10 @@ function FormularioConfig({ config }: { config: ConfigGuia }) {
         </div>
         <Segmentos<Formato>
           valor={formatoActual}
-          opciones={[{ v: '4x6', t: FORMATOS['4x6'].nombre }, { v: '4x8', t: FORMATOS['4x8'].nombre }, { v: 'otro', t: 'Otro tamaño' }]}
+          opciones={[{ v: '4x6', t: FORMATOS['4x6'].nombre }, { v: '4x8', t: FORMATOS['4x8'].nombre }, { v: '6x8', t: FORMATOS['6x8'].nombre }, { v: 'otro', t: 'Otro tamaño' }]}
           onCambio={(f) => { if (f !== 'otro') { setAncho(FORMATOS[f].ancho); setAlto(FORMATOS[f].alto); } }}
         />
-        <p className="peq muted">Elige 4 × 6 o 4 × 8 pulgadas, o escribe otro tamaño en mm. Los textos y las fuentes de la guía están pensados para la medida elegida; revisa la vista previa antes de imprimir.</p>
+        <p className="peq muted">Elige 4 × 6, 4 × 8 o 6 × 8 pulgadas, o escribe otro tamaño en mm. En tamaños más grandes el contenido se agranda para llenar la hoja; revisa la vista previa antes de imprimir.</p>
 
         {vista && (
           <div className="hoja-wrap" style={{ alignItems: 'flex-start' }}>

@@ -64,6 +64,8 @@ export function GuiaHoja({ guia, config, etiqueta }: { guia: Guia; config: Confi
   const copia = etiqueta !== 'ORIGINAL';
   const ancho = config?.ancho_mm ?? 101.6;
   const alto = config?.alto_mm ?? 152.4;
+  // La guía se diseña para 101.6 mm de ancho; en tamaños más grandes todo el contenido se escala con `zoom`.
+  const escala = ancho / 101.6;
   const direccionEEUU = [guia.direccion_eeuu, [guia.ciudad, guia.estado].filter(Boolean).join(', '), guia.zip].filter(Boolean).join(', ');
   const detalle = [
     guia.bultos ? `${guia.bultos} bulto${guia.bultos > 1 ? 's' : ''}` : '',
@@ -72,7 +74,7 @@ export function GuiaHoja({ guia, config, etiqueta }: { guia: Guia; config: Confi
   ].filter(Boolean).join(' · ');
 
   return (
-    <section className="guia" style={{ width: `${ancho}mm`, height: `${alto}mm` }} aria-label={`Guía ${guia.folio} ${etiqueta}`}>
+    <section className="guia" style={{ width: '101.6mm', height: `${alto / escala}mm`, zoom: escala, ...(escala > 1 ? { maxWidth: 'none', alignSelf: 'flex-start' } : {}) }} aria-label={`Guía ${guia.folio} ${etiqueta}`}>
       <div className="g-copy">{copia ? 'COPIA PARA EL CLIENTE' : 'ORIGINAL · PEGAR EN EL PAQUETE'}</div>
       <div className="g-frame">
         <div className="g-head">
