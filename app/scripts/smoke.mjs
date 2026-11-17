@@ -69,7 +69,7 @@ function crearMock(rol) {
         case '/rest/v1/conteos': return json(m.conteos);
         case '/rest/v1/tarifas': return json(TARIFAS);
         case '/rest/v1/guias': return un(m.guias.length ? [m.guias.at(-1)] : [GUIA]);
-        case '/rest/v1/config_guia': return un([{ id: 1, encabezado: { name: 'ENVCA Logística', l1: 'Oaxaca - EE. UU.', slogan: 'Tu envío, a casa', phones: '951 111 2222', rfc: 'XAXX010101000', titular: 'Titular Prueba', logo: '' }, nota: 'Gracias por su preferencia.' }]);
+        case '/rest/v1/config_guia': return un([{ id: 1, encabezado: { name: 'ENVIOS CALIFORNIA', l1: 'MENSAJERÍA Y PAQUETERÍA', slogan: '“EL SERVICIO MÁS RÁPIDO Y SEGURO”', phones: 'Tel: 951 52 100 50 · WhatsApp: 951 355 91 33 · Tel E.U.A.: (831) 899 14 02', rfc: 'AAEF860308PG2', titular: 'FRANCISCO ARANGO ECHEVERRÍA', logo: '' }, nota: 'NOTA: La empresa no se hace responsable si su paquete es inspeccionado o decomisado por la aduana de los Estados Unidos.' }]);
         case '/rest/v1/sucursales': return json([{ codigo: 'SPH', nombre: 'Matriz' }]);
         default: return json([]);        // vistas v_* y demás: vacías
       }
@@ -343,7 +343,7 @@ try {
     await page.goto(URL_APP + '#/guia/d0000000-0000-4000-8000-000000000001/imprimir');
     await page.getByText('COPIA PARA EL CLIENTE').waitFor();
     await shot(page, 'imprimir');
-    check('Impresión: original y copia cliente con encabezado de config_guia', (await page.getByText('ORIGINAL · PEGAR EN EL PAQUETE', { exact: true }).count()) === 1 && (await page.getByText('ENVCA Logística').count()) === 2 && (await page.getByText('Gracias por su preferencia.').count()) === 2);
+    check('Impresión: original y copia cliente con encabezado de config_guia', (await page.getByText('ORIGINAL · PEGAR EN EL PAQUETE', { exact: true }).count()) === 1 && (await page.getByText('ENVIOS CALIFORNIA').count()) === 2 && (await page.getByText('NOTA: La empresa no se hace responsable', { exact: false }).count()) === 2);
     await page.emulateMedia({ media: 'print' });
     const vis = await page.evaluate(() => ({
       nav: getComputedStyle(document.querySelector('.nav')).display,
