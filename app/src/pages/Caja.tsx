@@ -234,7 +234,7 @@ export function GuiaImprimir() {
 
   useEffect(() => {
     const st = document.createElement('style');
-    st.textContent = '@page { size: 80mm auto; margin: 0; }';
+    st.textContent = '@page { size: 101.6mm 152.4mm; margin: 0; }';
     document.head.appendChild(st);
     return () => { st.remove(); };
   }, []);
@@ -260,7 +260,7 @@ export function GuiaImprimir() {
           <Link className="btn" to={volver}>Listo</Link>
           {perfil?.rol === 'sucursal' && <Link className="btn accent" to="/guia/nueva">Nueva guía</Link>}
         </div>
-        <p className="peq muted">Se imprimen dos hojas para papel térmico de 80 mm: original y copia del cliente.</p>
+        <p className="peq muted">Se imprimen dos hojas de 4 × 6 pulgadas (101.6 × 152.4 mm): original y copia del cliente.</p>
       </div>
       <div className="hoja-wrap">
         <GuiaHoja guia={g.data} config={cfg.data} etiqueta="ORIGINAL" />

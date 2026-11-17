@@ -341,18 +341,18 @@ try {
     check('Caja: #/usuarios redirige a Nueva guía', page.url().endsWith('#/guia/nueva'), page.url());
 
     await page.goto(URL_APP + '#/guia/d0000000-0000-4000-8000-000000000001/imprimir');
-    await page.getByText('COPIA CLIENTE').waitFor();
+    await page.getByText('COPIA PARA EL CLIENTE').waitFor();
     await shot(page, 'imprimir');
-    check('Impresión: original y copia cliente con encabezado de config_guia', (await page.getByText('ORIGINAL', { exact: true }).count()) === 1 && (await page.getByText('ENVCA Logística').count()) === 2 && (await page.getByText('Gracias por su preferencia.').count()) === 2);
+    check('Impresión: original y copia cliente con encabezado de config_guia', (await page.getByText('ORIGINAL · PEGAR EN EL PAQUETE', { exact: true }).count()) === 1 && (await page.getByText('ENVCA Logística').count()) === 2 && (await page.getByText('Gracias por su preferencia.').count()) === 2);
     await page.emulateMedia({ media: 'print' });
     const vis = await page.evaluate(() => ({
       nav: getComputedStyle(document.querySelector('.nav')).display,
-      hoja: document.querySelector('.hoja').getBoundingClientRect().width,
-      salto: getComputedStyle(document.querySelector('.hoja')).breakAfter,
+      hoja: document.querySelector('.guia').getBoundingClientRect().width,
+      salto: getComputedStyle(document.querySelector('.guia')).breakAfter,
     }));
-    check('Impresión: en @media print se oculta la navegación y la hoja mide 72 mm', vis.nav === 'none' && Math.abs(vis.hoja - (72 / 25.4) * 96) < 3 && vis.salto === 'page', JSON.stringify(vis));
+    check('Impresión: en @media print se oculta la navegación y la guía mide 101.6 mm (4 × 6 pulgadas)', vis.nav === 'none' && Math.abs(vis.hoja - (101.6 / 25.4) * 96) < 3 && vis.salto === 'page', JSON.stringify(vis));
     const pdf = await page.pdf({ preferCSSPageSize: true });
-    check('Impresión: genera PDF con tamaño de página definido por CSS (80 mm)', pdf.length > 1000);
+    check('Impresión: genera PDF con tamaño de página definido por CSS (101.6 × 152.4 mm)', pdf.length > 1000);
     check('Caja: sin errores de consola inesperados', sinRuidoDeRed(errores).length === 0, sinRuidoDeRed(errores).join(' | '));
     await ctx.close();
   }
