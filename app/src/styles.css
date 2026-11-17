@@ -228,3 +228,7 @@ tfoot td { font-weight: 800; background: var(--panel); }
   .hoja:last-child { page-break-after: auto; break-after: auto; }
 }
 @media (max-width: 899px) { .nav a.solo-lateral { display: none; } }
+
+/* Bitácora de guías: filtros en cuadrícula responsiva */
+.grid-filtros { display: grid; gap: .75rem; grid-template-columns: 1fr; margin-bottom: .75rem; }
+@media (min-width: 720px) { .grid-filtros { grid-template-columns: repeat(5, minmax(0, 1fr)); } }

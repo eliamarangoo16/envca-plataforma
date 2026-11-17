@@ -401,7 +401,7 @@ try {
   }
 
   // 5) Administrador nivel 1 y nivel 2
-  for (const [rol, esperaNav, esperaUrl] of [['administrador', 9, '#/tablero'], ['admin_n2', 4, '#/conteos']]) {
+  for (const [rol, esperaNav, esperaUrl] of [['administrador', 10, '#/tablero'], ['admin_n2', 4, '#/conteos']]) {
     const mock = crearMock(rol);
     const hoyMX = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
     mock.conteos = [{ id: 'k1', tipo: 'recepcion', fecha: hoyMX, ruta_id: 'b0000000-0000-4000-8000-000000000001', localidad_id: 'a0000000-0000-4000-8000-000000000001', cantidad: 4, notas: null, usuario_id: RUTERO, capturado_en: new Date().toISOString() }];
@@ -418,7 +418,7 @@ try {
       check('admin_n2: no accede a Guías ni a Tarifas (redirige a Conteos)', page.url().endsWith('#/conteos'));
       check('admin_n2: no ve nada de dinero en el menú', (await page.getByRole('link', { name: /Tarifas|Guías|Tablero|Cierre/ }).count()) === 0);
     } else {
-      for (const h of ['#/guias', '#/cierre-diario', '#/tarifas', '#/usuarios', '#/localidades', '#/rutas', '#/conteos']) {
+      for (const h of ['#/guias', '#/cierre-diario', '#/tarifas', '#/usuarios', '#/localidades', '#/rutas', '#/conteos', '#/bitacora']) {
         await page.goto(URL_APP + h); await page.waitForTimeout(250);
         if (page.url().endsWith(h) === false) check(`administrador: ${h} accesible`, false, page.url());
       }
