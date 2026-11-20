@@ -27,7 +27,8 @@ export function ConfigGuiasAdmin() {
 }
 
 function FormularioConfig({ config }: { config: ConfigGuia }) {
-  const { userId } = useAuth();
+  const { userId, perfil } = useAuth();
+  const principal = perfil?.super_admin === true;
   const e: Encabezado = config.encabezado ?? {};
   const [name, setName] = useState(e.name ?? '');
   const [l1, setL1] = useState(e.l1 ?? '');
@@ -61,9 +62,9 @@ function FormularioConfig({ config }: { config: ConfigGuia }) {
     const a = parseNumero(ancho);
     const l = parseNumero(alto);
     if (a === null || l === null || a < 50 || a > 300 || l < 50 || l > 300) return setError('El ancho y el alto deben estar entre 50 y 300 mm.');
-    if (!name.trim()) return setError('Escribe el nombre de la empresa.');
+    if (principal && !name.trim()) return setError('Escribe el nombre de la empresa.');
     setOcupado(true);
-    const campos = {
+    const campos = !principal ? { ancho_mm: a, alto_mm: l, actualizado_por: userId } : {
       encabezado: { name: name.trim(), l1: l1.trim(), slogan: slogan.trim(), rfc: rfc.trim(), titular: titular.trim(), phones: phones.trim(), logo },
       nota: nota.trim(),
       ancho_mm: a,
@@ -89,6 +90,8 @@ function FormularioConfig({ config }: { config: ConfigGuia }) {
       <div className="col">
         {error && <Aviso tipo="err">{error}</Aviso>}
         {aviso && <Aviso tipo="ok">{aviso}</Aviso>}
+        {!principal && <Aviso tipo="info">Solo los administradores principales pueden cambiar el contenido de la guía (empresa, logotipo y nota). Tú puedes cambiar el tamaño de impresión.</Aviso>}
+        <fieldset disabled={!principal} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
         <h2>Información de la empresa</h2>
         <Campo etiqueta="Nombre de la empresa"><input type="text" value={name} onChange={(x) => setName(x.target.value)} /></Campo>
         <Campo etiqueta="Línea superior" ayuda="Texto pequeño arriba del nombre, por ejemplo MENSAJERÍA Y PAQUETERÍA."><input type="text" value={l1} onChange={(x) => setL1(x.target.value)} /></Campo>
@@ -103,6 +106,8 @@ function FormularioConfig({ config }: { config: ConfigGuia }) {
 
         <h2>Nota al pie de la guía</h2>
         <Campo etiqueta="Texto de la nota"><textarea rows={6} value={nota} onChange={(x) => setNota(x.target.value)} /></Campo>
+
+        </fieldset>
 
         <h2>Tamaño de la guía</h2>
         <div className="fila" style={{ gap: 8, flexWrap: 'wrap' }}>

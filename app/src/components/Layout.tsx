@@ -6,7 +6,7 @@ import type { Rol } from '../lib/types';
 import { Icon } from './Icon';
 import { Aviso } from './ui';
 
-export interface NavItem { a: string; t: string; i: string }
+export interface NavItem { a: string; t: string; i: string; principal?: boolean }
 
 export const NAV: Record<Rol, NavItem[]> = {
   rutero: [
@@ -38,6 +38,7 @@ export const NAV: Record<Rol, NavItem[]> = {
     { a: '/usuarios', t: 'Usuarios', i: 'usuarios' },
     { a: '/formato-guias', t: 'Formato de guías', i: 'editar' },
     { a: '/bitacora', t: 'Bitácora', i: 'lista' },
+    { a: '/bitacora-tarifas', t: 'Bitácora de tarifas', i: 'lista', principal: true },
     { a: '/perfil', t: 'Perfil', i: 'usuario' },
   ],
 };
@@ -59,7 +60,7 @@ export function EstadoChip() {
 export function Layout({ rol }: { rol: Rol }) {
   const { perfil } = useAuth();
   const { enLinea, conError } = useSync();
-  const items = NAV[rol];
+  const items = NAV[rol].filter((n) => !n.principal || perfil?.super_admin === true);
   const [mas, setMas] = useState(false);
   const loc = useLocation();
   const principales = items.length > 5 ? items.slice(0, 4) : items;

@@ -13,8 +13,9 @@ import { Localidades, RutaDetalle, Rutas } from './pages/Catalogos';
 import { CierreDiario, Tablero, Tarifas, Usuarios } from './pages/Admin';
 import { ConfigGuiasAdmin } from './pages/ConfigGuias';
 import { Bitacora } from './pages/Bitacora';
+import { BitacoraTarifas } from './pages/BitacoraTarifas';
 
-interface Def { path: string; roles: Rol[]; el: ReactElement }
+interface Def { path: string; roles: Rol[]; el: ReactElement; principal?: boolean }
 
 const N1: Rol[] = ['administrador'];
 const N1N2: Rol[] = ['administrador', 'admin_n2'];
@@ -36,6 +37,7 @@ const RUTAS: Def[] = [
   { path: 'usuarios', roles: N1, el: <Usuarios /> },
   { path: 'formato-guias', roles: N1, el: <ConfigGuiasAdmin /> },
   { path: 'bitacora', roles: N1, el: <Bitacora /> },
+  { path: 'bitacora-tarifas', roles: N1, el: <BitacoraTarifas />, principal: true },
   { path: 'conteos', roles: N1N2, el: <Conteos /> },
   { path: 'localidades', roles: N1N2, el: <Localidades /> },
   { path: 'rutas', roles: N1N2, el: <Rutas /> },
@@ -63,7 +65,7 @@ export default function App() {
   }
   if (estado !== 'dentro' || !perfil) return <Login />;
   const rol = perfil.rol;
-  const mias = RUTAS.filter((r) => r.roles.includes(rol));
+  const mias = RUTAS.filter((r) => r.roles.includes(rol) && (!r.principal || perfil.super_admin === true));
   return (
     <Routes>
       <Route element={<Layout rol={rol} />}>

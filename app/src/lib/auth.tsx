@@ -28,20 +28,20 @@ export const useAuth = (): Ctx => { const c = useContext(AuthCtx); if (!c) throw
 const ROLES: Rol[] = ['administrador', 'admin_n2', 'rutero', 'sucursal'];
 export const MSG_INACTIVA = 'Tu cuenta no está activa, contacta a un administrador';
 
-type FilaPerfil = { id: string; nombre: string | null; sucursal: string | null; rol: string; activo?: boolean | null };
+type FilaPerfil = { id: string; nombre: string | null; sucursal: string | null; rol: string; activo?: boolean | null; super_admin?: boolean | null };
 
 /**
  * Baja el perfil. NUNCA asume "activo" ante un fallo: si la consulta falla (red u otra causa) devuelve error y el
  * llamador decide (usar la copia guardada si la hay, o mostrar el error). Solo `activo === true` es activo.
  */
 export async function bajarPerfil(uid: string): Promise<{ perfil: Perfil | null; red: boolean; error: string | null }> {
-  const r = await q<FilaPerfil[]>(supabase.from('perfiles').select('id,nombre,sucursal,rol,activo').eq('id', uid).limit(1));
+  const r = await q<FilaPerfil[]>(supabase.from('perfiles').select('id,nombre,sucursal,rol,activo,super_admin').eq('id', uid).limit(1));
   if (r.error) return { perfil: null, red: r.clase === 'network', error: r.error };
   const f = r.data?.[0];
   if (!f) return { perfil: null, red: false, error: null };
   const rol = ROLES.includes(f.rol as Rol) ? (f.rol as Rol) : null;
   // Rol desconocido = sin acceso (la UI nunca asume permisos).
-  return { perfil: { id: f.id, nombre: f.nombre, sucursal: f.sucursal, rol: (rol ?? 'sucursal') as Rol, activo: rol !== null && f.activo === true }, red: false, error: null };
+  return { perfil: { id: f.id, nombre: f.nombre, sucursal: f.sucursal, rol: (rol ?? 'sucursal') as Rol, activo: rol !== null && f.activo === true, super_admin: rol === 'administrador' && f.super_admin === true }, red: false, error: null };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

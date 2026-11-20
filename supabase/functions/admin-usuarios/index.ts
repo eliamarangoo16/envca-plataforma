@@ -56,7 +56,7 @@ Deno.serve(async (req: Request) => {
   const caller = u.user;
 
   const { data: perfil, error: perr } = await admin
-    .from("perfiles").select("rol, activo").eq("id", caller.id).maybeSingle();
+    .from("perfiles").select("rol, activo, super_admin").eq("id", caller.id).maybeSingle();
   if (perr) {
     console.error("admin-usuarios: error leyendo perfil del llamador:", perr.message);
     return fail("No se pudo verificar tu permiso. Intenta de nuevo.", 500);
@@ -130,7 +130,7 @@ Deno.serve(async (req: Request) => {
     if (!UUID_RE.test(id)) return fail("Identificador de usuario no válido.");
 
     const { data: actual, error: gerr } = await admin
-      .from("perfiles").select("id, rol, sucursal, activo").eq("id", id).maybeSingle();
+      .from("perfiles").select("id, rol, sucursal, activo, super_admin").eq("id", id).maybeSingle();
     if (gerr) {
       console.error("admin-usuarios: leer perfil falló:", gerr.message);
       return fail("No se pudo leer el usuario.", 500);
@@ -164,6 +164,16 @@ Deno.serve(async (req: Request) => {
     }
     if (Object.keys(cambios).length === 0 && password === undefined) {
       return fail("No hay nada que actualizar.");
+    }
+
+    // Las cuentas de administradores principales (cambio de rol, baja o contraseña) solo las maneja otro principal.
+    if (actual.super_admin === true && id !== caller.id && perfil.super_admin !== true) {
+      return fail("Solo un administrador principal puede modificar a otro administrador principal.", 403);
+    }
+
+    // Solo un administrador principal da de baja usuarios (la base también lo exige).
+    if (cambios.activo === false && actual.activo !== false && perfil.super_admin !== true) {
+      return fail("Solo un administrador principal puede dar de baja usuarios.", 403);
     }
 
     // Un administrador no puede desactivarse ni quitarse el rol a sí mismo.

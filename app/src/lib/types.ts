@@ -13,6 +13,8 @@ export interface Perfil {
   sucursal: string | null;
   rol: Rol;
   activo: boolean;
+  /** Administrador principal: único que da de baja usuarios, cambia el contenido del formato de guías y ve la bitácora de tarifas. */
+  super_admin?: boolean;
   email?: string | null;
 }
 

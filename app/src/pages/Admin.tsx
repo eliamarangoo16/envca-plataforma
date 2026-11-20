@@ -189,11 +189,11 @@ async function llamarAdminUsuarios(body: Record<string, unknown>): Promise<{ ok:
   }
 }
 
-type PerfilFila = Pick<Perfil, 'id' | 'nombre' | 'rol' | 'sucursal'> & { activo: boolean | null };
+type PerfilFila = Pick<Perfil, 'id' | 'nombre' | 'rol' | 'sucursal'> & { activo: boolean | null; super_admin?: boolean | null };
 
 export function Usuarios() {
   const { userId } = useAuth();
-  const datos = useQuery<PerfilFila[]>(() => q(supabase.from('perfiles').select('id,nombre,rol,sucursal,activo').order('nombre')), []);
+  const datos = useQuery<PerfilFila[]>(() => q(supabase.from('perfiles').select('id,nombre,rol,sucursal,activo,super_admin').order('nombre')), []);
   const sucs = useQuery<{ codigo: string; nombre: string | null }[]>(() => q(supabase.from('sucursales').select('codigo,nombre').order('codigo')), []);
   const [edit, setEdit] = useState<PerfilFila | 'nuevo' | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -224,6 +224,9 @@ function FormUsuario({ p, esYo, sucursales, onCerrar, onListo }: { p: PerfilFila
   const [rol, setRol] = useState<Rol>((p?.rol as Rol) ?? 'rutero');
   const [sucursal, setSucursal] = useState(p?.sucursal ?? '');
   const [activo, setActivo] = useState(p?.activo !== false);
+  const { perfil: yoPerfil } = useAuth();
+  const sinPermisoBaja = yoPerfil?.super_admin !== true && p?.activo !== false;
+  const bloqueado = !!p?.super_admin && !esYo && yoPerfil?.super_admin !== true;   // principal: solo otro principal lo modifica
   const [error, setError] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
 
@@ -257,10 +260,11 @@ function FormUsuario({ p, esYo, sucursales, onCerrar, onListo }: { p: PerfilFila
         <Campo etiqueta={rol === 'sucursal' ? 'Sucursal (obligatoria)' : 'Sucursal (opcional)'}>
           <select value={sucursal} onChange={(e) => setSucursal(e.target.value)}><option value="">—</option>{sucursales.map((s) => <option key={s.codigo} value={s.codigo}>{s.codigo} · {s.nombre}</option>)}</select>
         </Campo>
+        {bloqueado && <Aviso tipo="warn">Esta cuenta es de un administrador principal: solo otro principal puede modificarla.</Aviso>}
         <Campo etiqueta={p ? 'Contraseña nueva (opcional)' : 'Contraseña (mínimo 8 caracteres)'}><input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} /></Campo>
-        {p && <label className={'check' + (activo ? ' on' : '')}><input type="checkbox" checked={activo} disabled={esYo} onChange={(e) => setActivo(e.target.checked)} /> Usuario activo{esYo ? ' (no puedes desactivarte)' : ''}</label>}
+        {p && <label className={'check' + (activo ? ' on' : '')}><input type="checkbox" checked={activo} disabled={esYo || sinPermisoBaja} onChange={(e) => setActivo(e.target.checked)} /> Usuario activo{esYo ? ' (no puedes desactivarte)' : sinPermisoBaja ? ' (solo un administrador principal puede dar de baja)' : ''}</label>}
       </div>
-      <div className="acciones"><button className="btn" onClick={onCerrar}>Cancelar</button><button className="btn primary" onClick={() => void guardar()} disabled={ocupado}>{ocupado ? 'Guardando…' : 'Guardar'}</button></div>
+      <div className="acciones"><button className="btn" onClick={onCerrar}>Cancelar</button><button className="btn primary" onClick={() => void guardar()} disabled={ocupado || bloqueado}>{ocupado ? 'Guardando…' : 'Guardar'}</button></div>
     </Modal>
   );
 }
