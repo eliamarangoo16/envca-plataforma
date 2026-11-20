@@ -137,7 +137,6 @@ export function Tarifas() {
 }
 
 function FormTarifa({ t, onCerrar, onListo }: { t: Tarifa | null; onCerrar: () => void; onListo: () => void }) {
-  const { userId } = useAuth();
   const [destino, setDestino] = useState(t?.destino ?? '');
   const [precio, setPrecio] = useState(t?.precio_por_kg != null ? String(t.precio_por_kg) : '');
   const [activa, setActiva] = useState(t?.activa ?? true);
@@ -148,11 +147,21 @@ function FormTarifa({ t, onCerrar, onListo }: { t: Tarifa | null; onCerrar: () =
     let p: number | null = null;
     if (precio.trim() !== '') { const n = parseNumero(precio); if (n === null || n <= 0) return setError('El precio debe ser mayor a 0 (o déjalo vacío para «por definir»).'); p = redondear2(n); }
     setOcupado(true); setError(null);
-    const campos = { destino: destino.trim(), precio_por_kg: p, activa, actualizada_por: userId };
-    const r = t ? await q(supabase.from('tarifas').update(campos).eq('id', t.id).select('id')) : await q(supabase.from('tarifas').insert({ ...campos, moneda: 'MXN' }).select('id'));
+    const nuevos = { destino: destino.trim(), precio_por_kg: p, activa };
+    // Al editar se mandan solo los campos que cambiaron (así la bitácora atribuye a cada persona lo suyo) y solo si nadie más la cambió antes.
+    const cambios: Partial<typeof nuevos> = {};
+    if (t) {
+      if (nuevos.destino !== t.destino) cambios.destino = nuevos.destino;
+      if (nuevos.precio_por_kg !== (t.precio_por_kg ?? null)) cambios.precio_por_kg = nuevos.precio_por_kg;
+      if (nuevos.activa !== t.activa) cambios.activa = nuevos.activa;
+      if (Object.keys(cambios).length === 0) { setOcupado(false); return onListo(); }
+    }
+    let qy = t ? supabase.from('tarifas').update(cambios).eq('id', t.id) : null;
+    if (qy && t?.actualizada_en) qy = qy.eq('actualizada_en', t.actualizada_en);
+    const r = qy ? await q(qy.select('id')) : await q(supabase.from('tarifas').insert({ ...nuevos, moneda: 'MXN' }).select('id'));
     setOcupado(false);
     if (r.error) return setError(r.raw?.code === '23505' ? 'Ya existe una tarifa con ese destino.' : r.error);
-    if (!(r.data as unknown[] | null)?.length) return setError('No se guardó: no tienes permiso para esta acción.');
+    if (!(r.data as unknown[] | null)?.length) return setError(t ? 'No se guardó: otra persona cambió esta tarifa mientras la editabas, o no tienes permiso. Cierra, revisa y vuelve a intentar.' : 'No se guardó: no tienes permiso para esta acción.');
     onListo();
   }
   return (

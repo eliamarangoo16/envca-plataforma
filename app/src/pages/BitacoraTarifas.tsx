@@ -23,6 +23,7 @@ const ETIQUETAS: Record<Accion, string> = { creada: 'Creada', modificada: 'Modif
 const CAMPOS: Record<string, string> = { destino: 'Destino', precio_por_kg: 'Precio por kg', moneda: 'Moneda', activa: 'Activa' };
 
 function legible(campo: string, v: unknown): string {
+  if (campo === 'precio_por_kg' && (v === null || v === undefined)) return 'Por definir';
   if (v === null || v === undefined || v === '') return '—';
   if (typeof v === 'boolean') return v ? 'Sí' : 'No';
   if (campo === 'precio_por_kg') return fmtMXN(Number(v));
@@ -43,7 +44,7 @@ export function BitacoraTarifas() {
       .from('tarifas_bitacora')
       .select('id,tarifa_id,destino,accion,usuario_id,cambios,creada_en')
       .gte('creada_en', `${desde}T00:00:00-06:00`)
-      .lte('creada_en', `${hasta}T23:59:59-06:00`);
+      .lt('creada_en', `${sumarDias(hasta, 1)}T00:00:00-06:00`);
     if (usuario) qy = qy.eq('usuario_id', usuario);
     return q<Fila[]>(qy.order('creada_en', { ascending: false }).order('id', { ascending: false }).limit(limite));
   }, [desde, hasta, usuario, limite]);
